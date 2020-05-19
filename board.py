@@ -29,10 +29,8 @@ class BgBoard(object):
     def __init__(self):
         self.screen = curses.initscr()
         curses.noecho()
-        self.p1board = None
-        self.p2board = None
-        self.jail = None
-        self.safe = None
+        self.innerBoard = None
+        self.outerBoard = None
         self.p1tokens = []
         self.p2tokens = []
    
@@ -43,13 +41,13 @@ class BgBoard(object):
     def drawPlayerBoards(self):
         screenWidth = self.screen.getmaxyx()[1]
         screenHeight = self.screen.getmaxyx()[0]
-        self.p1board = curses.newwin(30, 30, 1, 1)
-        self.p1board.border()
-        self.p1board.refresh()
-        self.p2board = curses.newwin(30, 30, 1, 32)
-        self.p2board.border()
-        self.p2board.refresh()
-        return self.p1board, self.p2board
+        self.innerBoard = curses.newwin(30, 30, 1, 1)
+        self.innerBoard.border()
+        self.innerBoard.refresh()
+        self.outerBoard = curses.newwin(30, 30, 1, 32)
+        self.outerBoard.border()
+        self.outerBoard.refresh()
+        return self.innerBoard, self.outerBoard
     
     def drawHomeBoard(self, playerBoard):
         pass
@@ -59,12 +57,15 @@ class BgBoard(object):
 
 class PlayerBoard(object):
     def __init__(self):
-        self.board = [{0:{"tokenType": 1, "number": 2}, 1:{"tokenType": 1, "number": 3}, 2:{"tokenType": 1, "number": 0}, 3:{"tokenType": 1, "number": 0},  4:{"tokenType": 1, "number": 0}, 5:{"tokenType": 1, "number": 0}},
-        {0:{"tokenType": 1, "number": 0}, 1:{"tokenType": 1, "number": 0}, 2:{"tokenType": 1, "number": 4}, 3:{"tokenType": 1, "number": 2}, 4:{"tokenType": 1, "number": 3}, 5:{"tokenType": 1, "number": 0}}]
+        self.board = [{0:{"tokenType": 2, "number": 2}, 1:{"tokenType": 1, "number": 0}, 2:{"tokenType": 1, "number": 0}, 3:{"tokenType": 1, "number": 0},  4:{"tokenType": 1, "number": 0}, 5:{"tokenType": 1, "number": 5}},
+        {0:{"tokenType": 1, "number": 0}, 1:{"tokenType": 1, "number": 3}, 2:{"tokenType": 1, "number": 0}, 3:{"tokenType": 1, "number": 0}, 4:{"tokenType": 1, "number": 0}, 5:{"tokenType": 2, "number": 5}}]
+        self.jail = []
+        self.safe = []
 
-
-    def drawBoard(self, board, p1token, p2token):
-        for i in range(2): #homeBoard, outerBoard
+    def drawBoard(self, board, p1token, p2token, i, player):
+        boardHeight = board.getmaxyx()[0]
+        #for i in range(2): #homeBoard, outerBoard
+        if player == 1:
             for j in range(6): #prongs
                 prong = self.board[i][j]
                 for x in range(prong["number"]):
@@ -74,22 +75,35 @@ class PlayerBoard(object):
                     else:
                         character = p2token
 
-                    board.addstr(x*2+1, j*5+1+30*i, character)
-        board.refresh()
+                    board.addstr(x*2+1, j*5+2, character)
+        else:
+            for j in range(6): #prongs
+                prong = self.board[i][j]
+                for x in range(prong["number"]):
+                    
+                    if prong["tokenType"] == 1:
+                        character = p1token 
+                    else:
+                        character = p2token
 
-def main():
+                    board.addstr(boardHeight-(x*2+2), j*5+2, character)
+        board.refresh()
     
-    try:
-        bgBoard = BgBoard()
-        pBoard = PlayerBoard()
-        bgBoard.drawInitialBoard()
-        bgBoard.drawPlayerBoards()
-        pBoard.drawBoard(bgBoard.p1board, "A", "B")
+bgBoard = BgBoard()
+pBoard = PlayerBoard()
+screen = bgBoard.screen
+
+def main(screen):
     
-        curses.curs_set(False)
-    except:
-        e = sys.exc_info()[0]
-        print(e, file=debug)
-    curses.napms(7000)
-    curses.endwin()
-wrapper(main())
+
+    bgBoard.drawInitialBoard()
+    bgBoard.drawPlayerBoards()
+    pBoard.drawBoard(bgBoard.innerBoard, "A", "B", 0, 1) #draw outerBoard
+    pBoard.drawBoard(bgBoard.outerBoard, "A", "B", 1, 1) #draw homeBoard
+    pBoard.drawBoard(bgBoard.innerBoard, "A", "B", 0, 2) #draw outerBoard
+    pBoard.drawBoard(bgBoard.outerBoard, "B", "A", 1, 2) #draw homeBoard
+    curses.curs_set(False)
+  
+    screen.getkey()
+    
+wrapper(main)
