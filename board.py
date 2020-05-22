@@ -6,23 +6,31 @@ from curses import window
 from random import randint
 from curses import wrapper
 
-N_LINES = 64
-N_COLS = 64
+# PLAYERONE_TOKEN = "A"
+# PLAYERTWO_TOKEN = "B"
+
+PLAYERONE_TOKEN = "\u2591"
+PLAYERTWO_TOKEN = "\u2593"
+
 
 debug = open("debug.txt", "w")
 
 class Dice(object):
-    def makeRoll(self):
-        self.value = str(randint(1, 6))
-        return self.value
+    def __init__(self, y, x):
+        self.y = y
+        self.x = x
+        self.roll()
+        
+    def roll(self):
+        self.number = str(randint(1, 6))
+        # return self.number
 
-    def drawDice(self, screen):
-        dice = curses.newwin(3, 3, N_LINES-3, N_COLS-3)
+    def draw(self):
+        dice = curses.newwin(3, 3, self.y, self.x)
         dice.border()
-        x = str(self.value)
-        dice.addstr(1, 1, x)
+        dice.addstr(1, 1, self.number)
         dice.refresh()
-        return dice
+        # return dice
 
 class BgBoard(object):
 
@@ -41,19 +49,16 @@ class BgBoard(object):
     def drawPlayerBoards(self):
         screenWidth = self.screen.getmaxyx()[1]
         screenHeight = self.screen.getmaxyx()[0]
-        self.innerBoard = curses.newwin(30, 30, 1, 1)
-        self.innerBoard.border()
-        self.innerBoard.refresh()
-        self.outerBoard = curses.newwin(30, 30, 1, 32)
+        self.outerBoard = curses.newwin(30, 30, 1, 1)
         self.outerBoard.border()
         self.outerBoard.refresh()
+        self.innerBoard = curses.newwin(30, 30, 1, 32)
+        self.innerBoard.border()
+        self.innerBoard.refresh()
+      
         return self.innerBoard, self.outerBoard
     
-    def drawHomeBoard(self, playerBoard):
-        pass
-
-    def drawOuterBoard(self, playerBoard):
-        pass
+  
 
 class PlayerBoard(object):
     def __init__(self):
@@ -64,6 +69,7 @@ class PlayerBoard(object):
 
     def drawBoard(self, board, p1token, p2token, i, player):
         boardHeight = board.getmaxyx()[0]
+        boardWidth = board.getmaxyx()[1]
         #for i in range(2): #homeBoard, outerBoard
         if player == 1:
             for j in range(6): #prongs
@@ -75,7 +81,7 @@ class PlayerBoard(object):
                     else:
                         character = p2token
 
-                    board.addstr(x*2+1, j*5+2, character)
+                    board.addstr(x*2+1, boardWidth-(j*5+3), character)
         else:
             for j in range(6): #prongs
                 prong = self.board[i][j]
@@ -86,22 +92,41 @@ class PlayerBoard(object):
                     else:
                         character = p2token
 
-                    board.addstr(boardHeight-(x*2+2), j*5+2, character)
+                    board.addstr(boardHeight-(x*2+2), boardWidth-(j*5+3), character)
         board.refresh()
     
 bgBoard = BgBoard()
 pBoard = PlayerBoard()
+dice1 = Dice(15, 64)
+dice2 = Dice(19, 64)
 screen = bgBoard.screen
 
 def main(screen):
-    
 
     bgBoard.drawInitialBoard()
     bgBoard.drawPlayerBoards()
-    pBoard.drawBoard(bgBoard.innerBoard, "A", "B", 0, 1) #draw outerBoard
-    pBoard.drawBoard(bgBoard.outerBoard, "A", "B", 1, 1) #draw homeBoard
-    pBoard.drawBoard(bgBoard.innerBoard, "A", "B", 0, 2) #draw outerBoard
-    pBoard.drawBoard(bgBoard.outerBoard, "B", "A", 1, 2) #draw homeBoard
+    pBoard.drawBoard(bgBoard.innerBoard, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, 0, 1) #draw outerBoard
+    pBoard.drawBoard(bgBoard.outerBoard, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, 1, 1) #draw homeBoard
+    pBoard.drawBoard(bgBoard.innerBoard, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, 0, 2) #draw outerBoard
+    pBoard.drawBoard(bgBoard.outerBoard, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, 1, 2) #draw homeBoard
+    
+    # dice1.draw()
+    # dice2.draw()
+    # while True:
+    #     char = screen.getkey()
+    #     print(char, file=debug)
+    #     if char == "1":
+    #         # print("enter was pressed", file=debug)
+    #         dice1.roll()
+    #         dice1.draw()
+    #         screen.refresh()
+    #     if char == "2":
+    #         dice2.roll()
+    #         dice2.draw()
+    #         screen.refresh()
+    #     elif char == "q":
+    #         break
+
     curses.curs_set(False)
   
     screen.getkey()

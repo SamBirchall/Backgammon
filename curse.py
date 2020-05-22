@@ -1,24 +1,26 @@
-
-
 import curses
 from curses import ascii
 from curses import panel
 from curses import wrapper
 
+screen = curses.initscr()
+def main(screen):
+    
+    while True:
+        char = screen.getkey()
+        if char == "KEY_RIGHT":
+            screen.addstr(1 ,5, "You pressed KEY RIGHT")
+        elif char == "KEY_UP":
+            screen.addstr(1 ,5, "You pressed KEY UP   ")
+        elif char == "KEY_DOWN":
+            screen.addstr(1 ,5, "You pressed KEY Down ")
+        elif char == "KEY_LEFT":
+            screen.addstr(1, 5, "You pressed KEY Left ")
+        else:
+            screen.addstr(1, 5, char)
+        screen.refresh()
+    
+    
+    curses.endwin() #hello
 
-def main():
-    screen = curses.initscr()
-    curses.noecho()
-    board1 = curses.newwin(20, 40, 0, 0)
-    board2 = curses.newwin(20, 40, 0, 40)
-    board1.border()
-    #board1.refresh()
-    board1.addstr(1, 5, "helloworld!")
-    board1.refresh()
-    board2.border()
-    board2.refresh()
-    curses.curs_set(False)
-    curses.napms(7000)
-    curses.endwin()
-
-wrapper(main())
+wrapper(main)
