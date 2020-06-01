@@ -61,74 +61,129 @@ class BgBoard(object):
   
 
 class PlayerBoard(object):
-    def __init__(self):
-        self.board = [{0:{"tokenType": 2, "number": 2}, 1:{"tokenType": 1, "number": 0}, 2:{"tokenType": 1, "number": 0}, 3:{"tokenType": 1, "number": 0},  4:{"tokenType": 1, "number": 0}, 5:{"tokenType": 1, "number": 5}},
-        {0:{"tokenType": 1, "number": 0}, 1:{"tokenType": 1, "number": 3}, 2:{"tokenType": 1, "number": 0}, 3:{"tokenType": 1, "number": 0}, 4:{"tokenType": 1, "number": 0}, 5:{"tokenType": 2, "number": 5}}]
+    def __init__(self, player, p1token, p2token, board1, board2):
+        self.board = [{0:{"tokenType": 2, "number": 2}, 
+        1:{"tokenType": 1, "number": 0}, 
+        2:{"tokenType": 1, "number": 0}, 
+        3:{"tokenType": 1, "number": 0},  
+        4:{"tokenType": 1, "number": 0}, 
+        5:{"tokenType": 1, "number": 5}},
+        {0:{"tokenType": 1, "number": 0}, 
+        1:{"tokenType": 1, "number": 3}, 
+        2:{"tokenType": 1, "number": 0}, 
+        3:{"tokenType": 1, "number": 0}, 
+        4:{"tokenType": 1, "number": 0}, 
+        5:{"tokenType": 2, "number": 5}}]
+
         self.jail = []
         self.safe = []
-
-    def drawBoard(self, board, p1token, p2token, i, player):
-        boardHeight = board.getmaxyx()[0]
-        boardWidth = board.getmaxyx()[1]
-        #for i in range(2): #homeBoard, outerBoard
-        if player == 1:
-            for j in range(6): #prongs
-                prong = self.board[i][j]
-                for x in range(prong["number"]):
-                    print(x, file=debug)
-                    if prong["tokenType"] == 1:
-                        character = p1token 
-                    else:
-                        character = p2token
-
-                    board.addstr(x*2+1, boardWidth-(j*5+3), character)
-        else:
-            for j in range(6): #prongs
-                prong = self.board[i][j]
-                for x in range(prong["number"]):
-                    
-                    if prong["tokenType"] == 1:
-                        character = p1token 
-                    else:
-                        character = p2token
-
-                    board.addstr(boardHeight-(x*2+2), boardWidth-(j*5+3), character)
-        board.refresh()
+        self.player = player
+        self.p1token = p1token
+        self.p2token = p2token
+        self.boards = [board1, board2]
+        
+        self.boardHeight = board1.getmaxyx()[0]
+        self.boardWidth = board1.getmaxyx()[1]
+        
     
-bgBoard = BgBoard()
-pBoard = PlayerBoard()
-dice1 = Dice(15, 64)
-dice2 = Dice(19, 64)
-screen = bgBoard.screen
+        
+    def drawBoard(self):
+        for i in range(2):
+            if self.player == 1:
+                for j in range(6): #prongs
+                    prong = self.board[i][j]
+                    for x in range(prong["number"]):
+                        print(x, file=debug)
+                        if prong["tokenType"] == 1:
+                            character = self.p1token 
+                        else:
+                            character = self.p2token
+
+                        self.boards[i].addstr(x*2+1, self.boardWidth-(j*5+3), character)
+            else:
+                for j in range(6): #prongs
+                    prong = self.board[i][j]
+                    for x in range(prong["number"]):
+                        
+                        if prong["tokenType"] == 1:
+                            character = self.p1token 
+                        else:
+                            character = self.p2token
+
+                        self.boards[i].addstr(self.boardHeight-(x*2+2), self.boardWidth-(j*5+3), character)
+            self.boards[i].refresh()
+
+    def changeBoard(self, board, prong, playerNumber, add=1):
+        """
+        board: 0: inner, 1: outer
+        prong
+        add: 1 to add 1, -1 to take away
+        playerNumber
+        """
+        if self.board[board][prong]["tokenType"] != playerNumber:
+            if add > 0:
+                if self.board[board][prong]["number"] == 0:
+                    self.board[board][prong]["tokenType"] = playerNumber
+                elif self.board[board][prong]["number"] == 1:
+                    raise Exception("players do not match")
+            else:
+                raise Exception("players do not match")
+        if add > 0:
+            if self.board[board][prong]["number"] >= 5:
+                raise Exception(f"prong {prong} already full on board {board}")
+            else:
+                self.board[board][prong]["number"] += add
+        if add < 0:
+            if self.board[board][prong]["number"] <= 0:
+                raise Exception(f"prong {prong} already empty on board {board}")
+            else:
+                self.board[board][prong]["number"] += add
+                print("hello from ln 141", file=debug)
+
+                
+
+        
+
+    
+
+class Game(object):
+    def __init__(self, screen):
+        self.bgBoard = BgBoard()
+        self.dice1 = Dice(15, 64)
+        self.dice2 = Dice(19, 64)
+        
+        screen = self.bgBoard.screen
+        
+        self.screen = screen
+        self.bgBoard.drawInitialBoard()
+        self.bgBoard.drawPlayerBoards()
+
+        self.p1Board = PlayerBoard(1, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
+        self.p2Board = PlayerBoard(2, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
+        
+
+        self.p1Board.drawBoard()
+        self.p2Board.drawBoard()
+
+
+    def mainLoop(self):
+        curses.curs_set(False)
+        while True:
+            char = self.screen.getkey()
+            if char == "q":
+                break
+            elif char == "KEY_UP":
+                self.p1Board.changeBoard(0, 1, 1, 1)
+                self.p1Board.drawBoard()
+            elif char == "KEY_DOWN":
+                self.p1Board.changeBoard(0, 1, 1,-1)
+                self.p1Board.drawBoard()
+            
 
 def main(screen):
-
-    bgBoard.drawInitialBoard()
-    bgBoard.drawPlayerBoards()
-    pBoard.drawBoard(bgBoard.innerBoard, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, 0, 1) #draw outerBoard
-    pBoard.drawBoard(bgBoard.outerBoard, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, 1, 1) #draw homeBoard
-    pBoard.drawBoard(bgBoard.innerBoard, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, 0, 2) #draw outerBoard
-    pBoard.drawBoard(bgBoard.outerBoard, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, 1, 2) #draw homeBoard
+    game = Game(screen)
     
-    # dice1.draw()
-    # dice2.draw()
-    # while True:
-    #     char = screen.getkey()
-    #     print(char, file=debug)
-    #     if char == "1":
-    #         # print("enter was pressed", file=debug)
-    #         dice1.roll()
-    #         dice1.draw()
-    #         screen.refresh()
-    #     if char == "2":
-    #         dice2.roll()
-    #         dice2.draw()
-    #         screen.refresh()
-    #     elif char == "q":
-    #         break
-
-    curses.curs_set(False)
   
-    screen.getkey()
+    game.mainLoop()
     
 wrapper(main)
