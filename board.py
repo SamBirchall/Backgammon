@@ -2,7 +2,7 @@ import curses
 import sys
 import random
 import numpy as np
-from curses import window
+# from curses import window
 from random import randint
 from curses import wrapper
 
@@ -85,31 +85,22 @@ class PlayerBoard(object):
         self.boardHeight = board1.getmaxyx()[0]
         self.boardWidth = board1.getmaxyx()[1]
         
-    
-        
     def drawBoard(self):
         for i in range(2):
-            if self.player == 1:
-                for j in range(6): #prongs
-                    prong = self.board[i][j]
-                    for x in range(prong["number"]):
-                        print(x, file=debug)
+            for j in range(6): #prongs
+                prong = self.board[i][j]
+                # for x in range(prong["number"]):
+                for x in range(6):
+                    if x < prong["number"]:
                         if prong["tokenType"] == 1:
-                            character = self.p1token 
+                            character = self.p1token
                         else:
                             character = self.p2token
-
+                    else:
+                        character = " "
+                    if self.player == 1:
                         self.boards[i].addstr(x*2+1, self.boardWidth-(j*5+3), character)
-            else:
-                for j in range(6): #prongs
-                    prong = self.board[i][j]
-                    for x in range(prong["number"]):
-                        
-                        if prong["tokenType"] == 1:
-                            character = self.p1token 
-                        else:
-                            character = self.p2token
-
+                    elif self.player == 2:
                         self.boards[i].addstr(self.boardHeight-(x*2+2), self.boardWidth-(j*5+3), character)
             self.boards[i].refresh()
 
@@ -138,13 +129,8 @@ class PlayerBoard(object):
                 raise Exception(f"prong {prong} already empty on board {board}")
             else:
                 self.board[board][prong]["number"] += add
-                print("hello from ln 141", file=debug)
+                print(self.board[board][prong]["number"], file=debug)
 
-                
-
-        
-
-    
 
 class Game(object):
     def __init__(self, screen):
