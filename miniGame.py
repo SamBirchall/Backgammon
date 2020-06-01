@@ -19,7 +19,7 @@ def main(screen):
         elif char == "KEY_LEFT":
             x -= 1
 
-        screen.addstr(y, x, "f")
+        screen.addstr(y, x, "\u2588")
 
         screen.refresh()
 
