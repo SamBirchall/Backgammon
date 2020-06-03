@@ -49,10 +49,10 @@ class BgBoard(object):
     def drawPlayerBoards(self):
         screenWidth = self.screen.getmaxyx()[1]
         screenHeight = self.screen.getmaxyx()[0]
-        self.outerBoard = curses.newwin(30, 30, 1, 1)
+        self.outerBoard = curses.newwin(22, 30, 1, 1)
         self.outerBoard.border()
         self.outerBoard.refresh()
-        self.innerBoard = curses.newwin(30, 30, 1, 32)
+        self.innerBoard = curses.newwin(22, 30, 1, 32)
         self.innerBoard.border()
         self.innerBoard.refresh()
       
@@ -135,8 +135,8 @@ class PlayerBoard(object):
 class Game(object):
     def __init__(self, screen):
         self.bgBoard = BgBoard()
-        self.dice1 = Dice(15, 64)
-        self.dice2 = Dice(19, 64)
+        self.dice1 = Dice(9, 64)
+        self.dice2 = Dice(14, 64)
         
         screen = self.bgBoard.screen
         
@@ -151,13 +151,16 @@ class Game(object):
         self.p1Board.drawBoard()
         self.p2Board.drawBoard()
 
+        self.dice1.draw()
+        self.dice2.draw()
+
     def checkScreenSize(self):
         height = self.screen.getmaxyx()[0]
         width = self.screen.getmaxyx()[1]
-        if height <= 30:
-            raise Exception("Terminal window does not fit board size, window must be greater than 45 by 60")
+        if height <= 23:
+            raise Exception("Terminal window does not fit board size, window must be greater than 24 by 80")
         elif width <= 50:
-            raise Exception("Terminal window does not fit board size, window must be greater than 45 by 60")
+            raise Exception("Terminal window does not fit board size, window must be greater than 24 by 60")
 
     def mainLoop(self):
         curses.curs_set(False)
