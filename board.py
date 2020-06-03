@@ -2,16 +2,26 @@ import curses
 import sys
 import random
 import numpy as np
-# from curses import window
 from random import randint
 from curses import wrapper
-
-# PLAYERONE_TOKEN = "A"
-# PLAYERTWO_TOKEN = "B"
 
 PLAYERONE_TOKEN = "\u2591"
 PLAYERTWO_TOKEN = "\u2593"
 
+STARTING_BOARD = [
+        {0:{"tokenType": 2, "number": 2}, #Home Board
+        1:{"tokenType": 1, "number": 0}, 
+        2:{"tokenType": 1, "number": 0}, 
+        3:{"tokenType": 1, "number": 0},  
+        4:{"tokenType": 1, "number": 0}, 
+        5:{"tokenType": 1, "number": 5}},
+        {0:{"tokenType": 1, "number": 0}, #Outer Board
+        1:{"tokenType": 1, "number": 3}, 
+        2:{"tokenType": 1, "number": 0}, 
+        3:{"tokenType": 1, "number": 0}, 
+        4:{"tokenType": 1, "number": 0}, 
+        5:{"tokenType": 2, "number": 5}}
+            ]
 
 debug = open("debug.txt", "w")
 
@@ -23,14 +33,14 @@ class Dice(object):
         
     def roll(self):
         self.number = str(randint(1, 6))
-        # return self.number
+        
 
     def draw(self):
         dice = curses.newwin(3, 3, self.y, self.x)
         dice.border()
         dice.addstr(1, 1, self.number)
         dice.refresh()
-        # return dice
+
 
 class BgBoard(object):
 
@@ -58,25 +68,30 @@ class BgBoard(object):
       
         return self.innerBoard, self.outerBoard
     
-  
+# class GameBoard(object):
+#     def __init__(self, p1board, p2board):
+#         self.p1board = p1board
+#         self.p2board = p2board
+#         self.board = STARTING_BOARD*2
+#         self.jail = {1:0, 2:0}
+#         self.safe = {1:0, 2:0}
+    
+#     def move(self, diceRoll, player):
+#         pass
 
+class Jail(object):
+    pass
+
+class Safe(object):
+    pass
+    
+        
 class PlayerBoard(object):
     def __init__(self, player, p1token, p2token, board1, board2):
-        self.board = [{0:{"tokenType": 2, "number": 2}, 
-        1:{"tokenType": 1, "number": 0}, 
-        2:{"tokenType": 1, "number": 0}, 
-        3:{"tokenType": 1, "number": 0},  
-        4:{"tokenType": 1, "number": 0}, 
-        5:{"tokenType": 1, "number": 5}},
-        {0:{"tokenType": 1, "number": 0}, 
-        1:{"tokenType": 1, "number": 3}, 
-        2:{"tokenType": 1, "number": 0}, 
-        3:{"tokenType": 1, "number": 0}, 
-        4:{"tokenType": 1, "number": 0}, 
-        5:{"tokenType": 2, "number": 5}}]
+        self.board = STARTING_BOARD
 
-        self.jail = []
-        self.safe = []
+        # self.jail = []
+        # self.safe = []
         self.player = player
         self.p1token = p1token
         self.p2token = p2token
@@ -86,23 +101,23 @@ class PlayerBoard(object):
         self.boardWidth = board1.getmaxyx()[1]
         
     def drawBoard(self):
-        for i in range(2):
-            for j in range(6): #prongs
-                prong = self.board[i][j]
-                # for x in range(prong["number"]):
-                for x in range(6):
-                    if x < prong["number"]:
-                        if prong["tokenType"] == 1:
-                            character = self.p1token
+        for z in range(2): #players
+            for i in range(2): #inner, outer
+                for j in range(6): #prongs
+                    prong = self.board[i][j]
+                    for x in range(6): #tokens
+                        if x < prong["number"]:
+                            if prong["tokenType"] == 1:
+                                character = self.p1token if z == 1 else self.p2token
+                            else:
+                                character = self.p2token if z == 1 else self.p1token
                         else:
-                            character = self.p2token
-                    else:
-                        character = " "
-                    if self.player == 1:
-                        self.boards[i].addstr(x*2+1, self.boardWidth-(j*5+3), character)
-                    elif self.player == 2:
-                        self.boards[i].addstr(self.boardHeight-(x*2+2), self.boardWidth-(j*5+3), character)
-            self.boards[i].refresh()
+                            character = " "
+                        if self.player == 1:
+                            self.boards[i].addstr(x*2+1, self.boardWidth-(j*5+3), character)
+                        elif self.player == 2:
+                            self.boards[i].addstr(self.boardHeight-(x*2+2), self.boardWidth-(j*5+3), character)
+                self.boards[i].refresh()
 
     def changeBoard(self, board, prong, playerNumber, add=1):
         """
