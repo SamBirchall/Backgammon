@@ -151,6 +151,13 @@ class Game(object):
         self.p1Board.drawBoard()
         self.p2Board.drawBoard()
 
+    def checkScreenSize(self):
+        height = self.screen.getmaxyx()[0]
+        width = self.screen.getmaxyx()[1]
+        if height <= 30:
+            raise Exception("Terminal window does not fit board size, window must be greater than 45 by 60")
+        elif width <= 50:
+            raise Exception("Terminal window does not fit board size, window must be greater than 45 by 60")
 
     def mainLoop(self):
         curses.curs_set(False)
@@ -168,7 +175,7 @@ class Game(object):
 
 def main(screen):
     game = Game(screen)
-    
+    game.checkScreenSize()
   
     game.mainLoop()
     
