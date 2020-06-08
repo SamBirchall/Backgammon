@@ -37,6 +37,7 @@ class Dice(object):
     def roll(self):
         self.number = str(randint(1, 6))
         self.draw()
+        return self.number
 
     def draw(self):
         self.dice.border()
@@ -272,6 +273,7 @@ class Game(object):
     def mainLoop(self):
         curses.curs_set(False)
         currentProng = [0,0]
+        currentDiceRoll = self.dice1.roll() + self.dice2.roll()
         currentPlayer = 0
 
         self.pBoard.moveCursor(currentProng[0], currentProng[1])
@@ -286,8 +288,8 @@ class Game(object):
                 break
             elif char == "p":
                 currentPlayer = self.currentPlayerIndicator.changePlayer()
-                self.dice1.roll()
-                self.dice2.roll()
+                currentDiceRoll = self.dice1.roll() + self.dice2.roll()
+
             elif char == "KEY_RIGHT":
                 foundProng = False
                 while not foundProng:
