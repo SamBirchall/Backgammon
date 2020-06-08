@@ -268,7 +268,7 @@ class Game(object):
             elif char == "KEY_RIGHT":
                 foundProng = False
                 while not foundProng:
-                    if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1:
+                    if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(currentProng[0], currentProng[1])["number"] !=0:
                         foundProng = True
                     elif currentProng[1] <5:
                         currentProng[1]+=1
@@ -279,7 +279,7 @@ class Game(object):
                         elif currentProng[0] ==3:
                             currentProng[1] = 0
                             currentProng[0] = 0
-
+                print(currentProng, file=debug)
                 self.pBoard.moveCursor(currentProng[0], currentProng[1])
             
                 
