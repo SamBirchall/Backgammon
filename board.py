@@ -66,6 +66,8 @@ class Log(object):
         self.window = curses.newwin(3, 9+2, self.y, self.x)
 
     def newMsg(self, msg):
+        msgDict = {" ":"SPACE", "\n":"ENTER", "\t":"TAB"}
+        if msg in msgDict.keys(): msg=msgDict[msg]
         self.window.border()
         self.window.addstr(1,1, f'{msg:>9}')
         self.window.refresh()
