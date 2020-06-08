@@ -59,6 +59,16 @@ class PlayerIndicator(object):
         self.window.refresh()
         return self.currentplayer
 
+class Log(object):
+    def __init__(self, y, x):
+        self.y = y
+        self.x = x
+        self.window = curses.newwin(3, 9+2, self.y, self.x)
+
+    def newMsg(self, msg):
+        self.window.border()
+        self.window.addstr(1,1, f'{msg:>9}')
+        self.window.refresh()
 
 class BgBoard(object):
 
@@ -230,6 +240,7 @@ class Game(object):
 
         self.currentPlayerIndicator = PlayerIndicator(3, 64, PLAYERONE_TOKEN, PLAYERTWO_TOKEN)
         
+        self.log = Log(3, 75)
         
         screen = self.bgBoard.screen
         
@@ -268,6 +279,7 @@ class Game(object):
             # self.p1Board.boards[0].refresh()
 
             char = self.screen.getkey()
+            self.log.newMsg(char)
             if char == "q":
                 break
             elif char == "p":
