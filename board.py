@@ -31,18 +31,17 @@ class Dice(object):
     def __init__(self, y, x):
         self.y = y
         self.x = x
+        self.dice = curses.newwin(3, 3, self.y, self.x)
         self.roll()
         
     def roll(self):
         self.number = str(randint(1, 6))
         self.draw()
-        
 
     def draw(self):
-        dice = curses.newwin(3, 3, self.y, self.x)
-        dice.border()
-        dice.addstr(1, 1, self.number)
-        dice.refresh()
+        self.dice.border()
+        self.dice.addstr(1, 1, self.number)
+        self.dice.refresh()
 
 class PlayerIndicator(object):
     def __init__(self, y, x, p1token, p2token):
@@ -50,14 +49,14 @@ class PlayerIndicator(object):
         self.x = x
         self.tokens = [p1token, p2token]
         self.currentplayer = 0
+        self.window = curses.newwin(3,3, self.y, self.x)
 
     def changePlayer(self):
-        window = curses.newwin(3,3, self.y, self.x)
-        window.border()
+        self.window.border()
         self.currentplayer += 1
         self.currentplayer %= 2
-        window.addstr(1,1, self.tokens[self.currentplayer])
-        window.refresh()
+        self.window.addstr(1,1, self.tokens[self.currentplayer])
+        self.window.refresh()
         return self.currentplayer
 
 
