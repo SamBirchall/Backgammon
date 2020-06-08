@@ -48,7 +48,7 @@ class PlayerIndicator(object):
         self.y = y
         self.x = x
         self.tokens = [p1token, p2token]
-        self.currentplayer = 1
+        self.currentplayer = 0
 
     def changePlayer(self):
         window = curses.newwin(3,3, self.y, self.x)
@@ -57,6 +57,7 @@ class PlayerIndicator(object):
         self.currentplayer %= 2
         window.addstr(1,1, self.tokens[self.currentplayer])
         window.refresh()
+        return self.currentplayer
 
 
 class BgBoard(object):
@@ -269,6 +270,8 @@ class Game(object):
             char = self.screen.getkey()
             if char == "q":
                 break
+            elif char == "p":
+                currentPlayer = self.currentPlayerIndicator.changePlayer()
             elif char == "KEY_RIGHT":
                 foundProng = False
                 while not foundProng:
