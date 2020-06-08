@@ -35,6 +35,7 @@ class Dice(object):
         
     def roll(self):
         self.number = str(randint(1, 6))
+        self.draw()
         
 
     def draw(self):
@@ -272,6 +273,8 @@ class Game(object):
                 break
             elif char == "p":
                 currentPlayer = self.currentPlayerIndicator.changePlayer()
+                self.dice1.roll()
+                self.dice2.roll()
             elif char == "KEY_RIGHT":
                 foundProng = False
                 while not foundProng:
