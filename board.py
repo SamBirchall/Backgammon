@@ -8,6 +8,8 @@ from curses import wrapper
 PLAYERONE_TOKEN = "\u2591"
 PLAYERTWO_TOKEN = "\u2593"
 
+CURSOR_CHAR = "\u2588"
+
 STARTING_BOARD = [
         {0:{"tokenType": 2, "number": 2}, #Home Board
         1:{"tokenType": 1, "number": 0}, 
@@ -40,6 +42,21 @@ class Dice(object):
         dice.border()
         dice.addstr(1, 1, self.number)
         dice.refresh()
+
+class PlayerIndicator(object):
+    def __init__(self, y, x, p1token, p2token):
+        self.y = y
+        self.x = x
+        self.tokens = [p1token, p2token]
+        self.currentplayer = 1
+
+    def changePlayer(self):
+        window = curses.newwin(3,3, self.y, self.x)
+        window.border()
+        self.currentplayer += 1
+        self.currentplayer %= 2
+        window.addstr(1,1, self.tokens[self.currentplayer])
+        window.refresh()
 
 
 class BgBoard(object):
@@ -117,8 +134,8 @@ class PlayerBoard(object):
         5:{"tokenType": 1, "number": 5}}
             ]
 
-        # self.jail = []
-        # self.safe = []
+        self.jail = {1:0, 2:0}
+        self.safe = {1:0, 2:0}
         self.player = player
         self.p1token = p1token
         self.p2token = p2token
@@ -148,7 +165,25 @@ class PlayerBoard(object):
                 self.boards[i].refresh()
 
     def prongInfo(self, board, prong):
+        """
+        {"tokenType":, "number"}
+        """
         return self.board[board][prong]
+    
+    def moveCursor(self, board, prong):
+        if board >= 2:
+            board %= 2
+            z = 1
+        else:
+            z = 0
+
+        pos = self.prongInfo(board, prong)["number"]
+        print(pos, file=debug)
+        if z:
+            self.boards[board].addstr(self.boardHeight-pos*2-1, self.boardWidth-(prong*5+3), CURSOR_CHAR)
+        else:
+            self.boards[board].addstr(pos*2, self.boardWidth-(prong*5+3), CURSOR_CHAR)
+        self.boards[board].refresh()
 
     def changeBoard(self, board, prong, playerNumber, add=1):
         """
@@ -183,6 +218,9 @@ class Game(object):
         self.bgBoard = BgBoard()
         self.dice1 = Dice(9, 64)
         self.dice2 = Dice(14, 64)
+
+        self.currentPlayerIndicator = PlayerIndicator(3, 64, PLAYERONE_TOKEN, PLAYERTWO_TOKEN)
+        
         
         screen = self.bgBoard.screen
         
@@ -190,15 +228,16 @@ class Game(object):
         self.bgBoard.drawInitialBoard()
         self.bgBoard.drawPlayerBoards()
 
-        self.p1Board = PlayerBoard(1, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
+        self.pBoard = PlayerBoard(1, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
         # self.p2Board = PlayerBoard(2, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
         
 
-        self.p1Board.drawBoard()
+        self.pBoard.drawBoard()
         # self.p2Board.drawBoard()
 
         self.dice1.draw()
         self.dice2.draw()
+        self.currentPlayerIndicator.changePlayer()
 
     def checkScreenSize(self):
         height = self.screen.getmaxyx()[0]
@@ -210,27 +249,66 @@ class Game(object):
 
     def mainLoop(self):
         curses.curs_set(False)
+        currentProng = [0,0]
+        currentPlayer = 0
+
+        self.pBoard.moveCursor(currentProng[0], currentProng[1])
+
+        
+        
+        
+
         while True:
+            # self.p1Board.boards[0].addstr(5,5, CURSOR_CHAR)
+            # self.p1Board.boards[0].refresh()
+
             char = self.screen.getkey()
             if char == "q":
                 break
-            elif char == "KEY_UP":
-                if self.p1Board.prongInfo(0,1)["number"] < 5:
-                    self.p1Board.changeBoard(0, 1, 1, 1)
-                    self.p1Board.drawBoard()
-            elif char == "KEY_DOWN":
-                if self.p1Board.prongInfo(0,1)["number"] > 0:
-                    self.p1Board.changeBoard(0, 1, 1,-1)
-                    self.p1Board.drawBoard()
+            elif char == "KEY_RIGHT":
+                foundProng = False
+                while not foundProng:
+                    if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1:
+                        foundProng = True
+                    elif currentProng[1] <5:
+                        currentProng[1]+=1
+                    elif currentProng[1] ==5:
+                        if currentProng[0] < 3:
+                            currentProng[1] = 0
+                            currentProng[0] += 1
+                        elif currentProng[0] ==3:
+                            currentProng[1] = 0
+                            currentProng[0] = 0
 
-            elif char == "w":
-                if self.p1Board.prongInfo(2,1)["number"] < 5:
-                    self.p1Board.changeBoard(2+0, 1, 2)
-                    self.p1Board.drawBoard()
-            elif char == "s":
-                if self.p1Board.prongInfo(2,1)["number"] > 0:
-                    self.p1Board.changeBoard(2+0, 1, 2, -1)
-                    self.p1Board.drawBoard()
+                self.pBoard.moveCursor(currentProng[0], currentProng[1])
+            
+                
+
+
+
+            
+            # if char == "q":
+            #     break
+            # elif char == "KEY_UP":
+            #     if self.p1Board.prongInfo(0,1)["number"] < 5:
+            #         self.p1Board.changeBoard(0, 1, 1, 1)
+            #         self.p1Board.drawBoard()
+            # elif char == "KEY_DOWN":
+            #     if self.p1Board.prongInfo(0,1)["number"] > 0:
+            #         self.p1Board.changeBoard(0, 1, 1,-1)
+            #         self.p1Board.drawBoard()
+
+            # elif char == "w":
+            #     if self.p1Board.prongInfo(2,1)["number"] < 5:
+            #         self.p1Board.changeBoard(2+0, 1, 2)
+            #         self.p1Board.drawBoard()
+            # elif char == "s":
+            #     if self.p1Board.prongInfo(2,1)["number"] > 0:
+            #         self.p1Board.changeBoard(2+0, 1, 2, -1)
+            #         self.p1Board.drawBoard()
+                
+            # elif char == "p":
+            #     self.currentPlayerIndicator.changePlayer()
                 
 
 def main(screen):
