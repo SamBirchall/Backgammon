@@ -293,15 +293,35 @@ class Game(object):
             elif char == "KEY_RIGHT":
                 foundProng = False
                 while not foundProng:
-                    if currentProng[1] <5:
-                        currentProng[1] += 1
-                    elif currentProng[1] ==5:
-                        if currentProng[0] < 3:
+                    if currentProng[1] <= 5 :
+                        if currentProng[0] <= 1:
+                            currentProng[1] += 1
+                        else:
+                            currentProng[1] -= 1
+
+                    if (currentProng[1] == 6 and currentProng[0] <= 1) or (currentProng[1] == -1 and currentProng[0] > 1):
+                        if currentProng[0] == 0:
+                            currentProng[0] = 1
                             currentProng[1] = 0
-                            currentProng[0] += 1
-                        elif currentProng[0] ==3:
-                            currentProng[1] = 0
+
+
+                        elif currentProng[0] == 1:
+                            currentProng[0] = 3
+                            currentProng[1] = 5
+                        elif currentProng[0] == 3:
+                            currentProng[0] = 2
+                            currentProng[1] = 5
+                        elif currentProng[0] == 2:
                             currentProng[0] = 0
+                            currentProng[1] = 0
+                        
+
+                        # if currentProng[0] < 3:
+                        #     currentProng[1] = 0
+                        #     currentProng[0] += 1
+                        # elif currentProng[0] ==3:
+                        #     currentProng[1] = 0
+                        #     currentProng[0] = 0
 
                     if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(currentProng[0], currentProng[1])["number"] !=0:
                         foundProng = True
