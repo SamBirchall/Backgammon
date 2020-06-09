@@ -274,7 +274,7 @@ class Game(object):
         curses.curs_set(False)
         currentProng = [0,0]
         currentDiceRoll = self.dice1.roll() + self.dice2.roll()
-        currentPlayer = 0
+        currentPlayer = 1
 
         self.pBoard.moveCursor(currentProng[0], currentProng[1])
 
@@ -314,14 +314,16 @@ class Game(object):
                         elif currentProng[0] == 2:
                             currentProng[0] = 0
                             currentProng[1] = 0
-                        
 
-                        # if currentProng[0] < 3:
-                        #     currentProng[1] = 0
-                        #     currentProng[0] += 1
-                        # elif currentProng[0] ==3:
-                        #     currentProng[1] = 0
-                        #     currentProng[0] = 0
+                    if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(currentProng[0], currentProng[1])["number"] !=0:
+                        foundProng = True
+                   
+                self.pBoard.moveCursor(currentProng[0], currentProng[1])
+
+            elif char == "KEY_LEFT":
+                foundProng = False
+                while not foundProng:
+                    
 
                     if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(currentProng[0], currentProng[1])["number"] !=0:
                         foundProng = True
