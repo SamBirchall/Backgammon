@@ -36,7 +36,7 @@ class PlayerIndicator(object):
     def __init__(self, y, x, p1token, p2token):
         self.y = y
         self.x = x
-        self.tokens = [p1token, p2token]
+        self.tokens = [p2token, p1token]
         self.currentplayer = 0
         self.window = curses.newwin(3,3, self.y, self.x)
 
@@ -145,10 +145,13 @@ class PlayerBoard(object):
         '''
         cursesBoard = 1 if (prong > 5 and prong < 18) else 0
 
+        if position == "end":
+            position = self.prongInfo(prong)["number"] - 0.5
+
         if prong < 12: # bottom
             self.cursesBoards[cursesBoard].addstr(int(self.boardHeight-(position*2+2)), self.boardWidth-((prong%6)*5+3), character)
         else: # top
-            self.cursesBoards[cursesBoard].addstr(position*2+1, (prong%6)*5+2, character)
+            self.cursesBoards[cursesBoard].addstr(int(position*2+1), int((prong%6)*5+2), character)
         
     def drawBoard(self):
         for i in range(24):
@@ -288,11 +291,11 @@ class Game(object):
 
     def mainLoop(self):
         curses.curs_set(False)
-        currentProng = [0,0]
+        currentProng = 0
         currentDiceRoll = [self.dice1.roll(), self.dice2.roll()]
-        currentPlayer = 1
+        currentPlayer = 0
 
-        self.pBoard.moveCursor(0)
+        self.pBoard.moveCursor(currentProng)
         self.pBoard.refreshCursesBoards()
 
         while True:
@@ -303,76 +306,22 @@ class Game(object):
             elif char == "p":
                 currentPlayer = self.currentPlayerIndicator.changePlayer()
                 currentDiceRoll = self.dice1.roll() + self.dice2.roll()
-            elif char == "KEY_RIGHT" or "KEY_LEFT": # FIXME:
-                if char == "KEY_RIGHT":
-                    foundProng = False
-                    while not foundProng:
-                        if currentProng[1] <= 5 :
-                            if currentProng[0] <= 1:
-                                currentProng[1] += 1
-                            else:
-                                currentProng[1] -= 1
+            elif char == "KEY_RIGHT" or "KEY_LEFT":
+                foundProng = False
+                while not foundProng:
+                    if char == "KEY_RIGHT":
+                        currentProng += 1
+                    else:
+                        currentProng -= 1
+                    currentProng %= 24
 
-                        if (currentProng[1] == 6 and currentProng[0] <= 1) or (currentProng[1] == -1 and currentProng[0] > 1):
-                            if currentProng[0] == 0:
-                                currentProng[0] = 1
-                                currentProng[1] = 0
+                    if self.pBoard.prongInfo(currentProng)["tokenType"] == currentPlayer and self.pBoard.prongInfo(currentProng)["number"] != 0:
+                        foundProng = True
 
+                self.pBoard.moveCursor(currentProng)
+                self.pBoard.refreshCursesBoards()
 
-                            elif currentProng[0] == 1:
-                                currentProng[0] = 3
-                                currentProng[1] = 5
-                            elif currentProng[0] == 3:
-                                currentProng[0] = 2
-                                currentProng[1] = 5
-                            elif currentProng[0] == 2:
-                                currentProng[0] = 0
-                                currentProng[1] = 0
-
-                        if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(currentProng[0], currentProng[1])["number"] !=0:
-                            foundProng = True
-                    
-                    self.pBoard.moveCursor(*currentProng)
-
-                elif char == "KEY_LEFT":
-                    foundProng = False
-                    while not foundProng:
-                        if currentProng[1] <= 5:
-                            if currentProng[0] <= 1:
-                                currentProng[1] -=1
-                            else:
-                                currentProng[1] += 1
-                        
-                        if (currentProng[1] == -1 and currentProng[0] <= 1) or (currentProng[1] == 6 and currentProng[0] > 1):
-                            if currentProng[0] == 0:
-                                currentProng[0] = 2
-                                currentProng[1] = 0
-
-
-                            elif currentProng[0] == 1:
-                                currentProng[0] = 0
-                                currentProng[1] = 5
-                            elif currentProng[0] == 3:
-                                currentProng[0] = 1
-                                currentProng[1] = 5
-                            elif currentProng[0] == 2:
-                                currentProng[0] = 3
-                                currentProng[1] = 0
-                        
-                        if self.pBoard.prongInfo(currentProng[0], currentProng[1])["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(currentProng[0], currentProng[1])["number"] !=0:
-                            foundProng = True
-
-                
-                    self.pBoard.moveCursor(currentProng[0], currentProng[1])
-
-                for moveValue in self.checkMoveValue():
-                    prong = self.validProngs(currentPlayer, int(moveValue), currentProng)
-                    if prong:
-                        self.log.newMsg(str(currentProng))
-
-                        self.pBoard.tempDisplayProng(*prong, currentPlayer+1)
-                        self.pBoard.drawBoard()
-                        self.pBoard.moveCursor(currentProng[0], currentProng[1])
+                # TODO: display possible moves from the position using checkMoveValue() method
 
 def main(screen):
     game = Game(screen)
