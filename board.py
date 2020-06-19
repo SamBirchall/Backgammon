@@ -10,21 +10,6 @@ PLAYERTWO_TOKEN = "\u2591"
 
 CURSOR_CHAR = "\u2588"
 
-STARTING_BOARD = [
-        {0:{"tokenType": 2, "number": 2}, #Home Board
-        1:{"tokenType": 1, "number": 0}, 
-        2:{"tokenType": 1, "number": 0}, 
-        3:{"tokenType": 1, "number": 0},  
-        4:{"tokenType": 1, "number": 0}, 
-        5:{"tokenType": 1, "number": 5}},
-        {0:{"tokenType": 1, "number": 0}, #Outer Board
-        1:{"tokenType": 1, "number": 3}, 
-        2:{"tokenType": 1, "number": 0}, 
-        3:{"tokenType": 1, "number": 0}, 
-        4:{"tokenType": 1, "number": 0}, 
-        5:{"tokenType": 2, "number": 5}}
-            ]
-
 debug = open("debug.txt", "w")
 
 class Dice(object):
@@ -146,7 +131,7 @@ class PlayerBoard(object):
         self.player = player
         self.p1token = p1token
         self.p2token = p2token
-        self.boards = [board1, board2]
+        self.cursesBoards = [board1, board2] # left, right?
         
         self.boardHeight = board1.getmaxyx()[0]
         self.boardWidth = board1.getmaxyx()[1]
@@ -160,9 +145,9 @@ class PlayerBoard(object):
         cursesBoard = 1 if (prong > 5 and prong < 18) else 0
 
         if prong < 12: # bottom
-            self.boards[cursesBoard].addstr(self.boardHeight-(position*2+2), self.boardWidth-((prong%6)*5+3), character)
+            self.cursesBoards[cursesBoard].addstr(self.boardHeight-(position*2+2), self.boardWidth-((prong%6)*5+3), character)
         else: # top
-            self.boards[cursesBoard].addstr(position*2+1, (prong%6)*5+2, character)
+            self.cursesBoards[cursesBoard].addstr(position*2+1, (prong%6)*5+2, character)
         
     def drawBoard(self):
         for i in range(24):
@@ -175,12 +160,7 @@ class PlayerBoard(object):
 
                 self.drawCharacter(i, x, character)
 
-                # if i < 12: # bottom
-                #     self.boards[cursesBoard].addstr(self.boardHeight-(x*2+2), self.boardWidth-((i%6)*5+3), character)
-                # else: # top
-                #     self.boards[cursesBoard].addstr(x*2+1, (i%6)*5+2, character)
-
-        for board in self.boards:
+        for board in self.cursesBoards:
             board.refresh()
 
     def prongInfo(self, board, prong):
@@ -202,11 +182,11 @@ class PlayerBoard(object):
             y, x = self.boardHeight-pos*2-1, self.boardWidth-(prong*5+3)
         else:
             y, x = pos*2, self.boardWidth-(prong*5+3)
-        self.boards[board].addstr(y, x, CURSOR_CHAR)
+        self.cursesBoards[board].addstr(y, x, CURSOR_CHAR)
         if self.currentCursorPos:
-            self.boards[self.currentCursorPos[0]].addstr(self.currentCursorPos[1], self.currentCursorPos[2], " ")
+            self.cursesBoards[self.currentCursorPos[0]].addstr(self.currentCursorPos[1], self.currentCursorPos[2], " ")
         self.currentCursorPos = (board, y, x)
-        for boardyboard in self.boards: boardyboard.refresh()
+        for boardyboard in self.cursesBoards: boardyboard.refresh()
 
     def tempDisplayProng(self, board, prong, playerNumber, add=1):
         self.tempProngs.append([board, prong, playerNumber, add])
