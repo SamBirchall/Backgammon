@@ -95,10 +95,12 @@ class BgBoard(object):
       
         return self.innerBoard, self.outerBoard
 
-class Jail(object):
+class Jail(object): 
+    #TODO:
     pass
 
 class Safe(object):
+    #TODO:
     pass
     
         
@@ -301,12 +303,16 @@ class Game(object):
         counter = 0
 
 
+
         self.pBoard.moveCursor(currentProng)
         self.pBoard.refreshCursesBoards()
 
         self.currentMoveValues = self.getMoveValues()
 
         while True:
+            #TODO:
+            # has player won?
+            
             char = self.screen.getkey()
             self.log.newMsg(char)
             if char == "q":
@@ -331,7 +337,7 @@ class Game(object):
                     
 
                 self.pBoard.moveCursor(currentProng)
-                if previousCounter > -1:
+                if previousCounter > -1 and len(self.availableProngs) >= previousCounter-1:
                     self.pBoard.drawCharacter(self.availableProngs[previousCounter], 5, " ")
 
                 # display possible moves from the position using getMoveValues() method
@@ -367,6 +373,9 @@ class Game(object):
                 self.pBoard.moveToken(currentProng, self.availableProngs[previousCounter], currentPlayer)
                 self.availableProngs.pop(previousCounter)
                 self.currentMoveValues.pop(previousCounter)
+                if not self.availableProngs:
+                    previousCounter = -1
+
 
 
 
