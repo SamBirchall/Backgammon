@@ -29,6 +29,9 @@ class Dice(object):
         self.dice.addstr(1, 1, self.number)
         self.dice.refresh()
 
+    def getNumber(self):
+        return int(self.number)
+
 class PlayerIndicator(object):
     def __init__(self, y, x, p1token, p2token):
         self.y = y
@@ -227,16 +230,15 @@ class Game(object):
         self.dice1.draw()
         self.dice2.draw()
         self.currentPlayerIndicator.changePlayer()
-        self.moveValue = []
 
-    def checkMoveValue(self): # FIXME: for some reason this returns a list of strings. also, return new list not a variable of the class
-        if self.dice1.number == self.dice2.number:
+    def checkMoveValue(self):
+        if self.dice1.getNumber() == self.dice2.getNumber():
             for i in range(4):
-                self.moveValue.append(self.dice2.number)
+                moveValue.append(self.dice2.getNumber())
         else:
-            self.moveValue.append(self.dice1.number)
-            self.moveValue.append(self.dice2.number)
-        return self.moveValue
+            moveValue.append(self.dice1.getNumber())
+            moveValue.append(self.dice2.getNumber())
+        return moveValue
     
     def validProngs(self, currentPlayer, diceroll, startProng): # FIXME:
         """
