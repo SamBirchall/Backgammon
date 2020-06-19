@@ -98,17 +98,6 @@ class BgBoard(object):
         self.innerBoard.refresh()
       
         return self.innerBoard, self.outerBoard
-    
-# class GameBoard(object):
-#     def __init__(self, p1board, p2board):
-#         self.p1board = p1board
-#         self.p2board = p2board
-#         self.board = STARTING_BOARD*2
-#         self.jail = {1:0, 2:0}
-#         self.safe = {1:0, 2:0}
-    
-#     def move(self, diceRoll, player):
-#         pass
 
 class Jail(object):
     pass
@@ -122,7 +111,6 @@ class PlayerBoard(object):
 
         self.tempProngs = []
         self.currentCursorPos = False
-        # self.board = STARTING_BOARD[:]+STARTING_BOARD[:]
         self.board = [ # 1: red, 0: black
             {"tokenType": 1, "number": 2},
             {"tokenType": 0, "number": 0},
@@ -152,33 +140,6 @@ class PlayerBoard(object):
             {"tokenType": 0, "number": 0},
             {"tokenType": 0, "number": 2}
         ]
-            
-        # {0:{"tokenType": 2, "number": 2}, #Home Board
-        # 1:{"tokenType": 1, "number": 0}, 
-        # 2:{"tokenType": 1, "number": 0}, 
-        # 3:{"tokenType": 1, "number": 0},  
-        # 4:{"tokenType": 1, "number": 0}, 
-        # 5:{"tokenType": 1, "number": 5}},
-        # {0:{"tokenType": 1, "number": 0}, #Outer Board
-        # 1:{"tokenType": 1, "number": 3}, 
-        # 2:{"tokenType": 1, "number": 0}, 
-        # 3:{"tokenType": 1, "number": 0}, 
-        # 4:{"tokenType": 1, "number": 0}, 
-        # 5:{"tokenType": 2, "number": 5}},
-            
-        # {0:{"tokenType": 1, "number": 2}, #Home Board
-        # 1:{"tokenType": 2, "number": 0}, 
-        # 2:{"tokenType": 2, "number": 0}, 
-        # 3:{"tokenType": 2, "number": 0},  
-        # 4:{"tokenType": 2, "number": 0}, 
-        # 5:{"tokenType": 2, "number": 5}},
-        # {0:{"tokenType": 2, "number": 0}, #Outer Board
-        # 1:{"tokenType": 2, "number": 3}, 
-        # 2:{"tokenType": 2, "number": 0}, 
-        # 3:{"tokenType": 2, "number": 0}, 
-        # 4:{"tokenType": 2, "number": 0}, 
-        # 5:{"tokenType": 1, "number": 5}}
-        #     ]
 
         self.jail = {1:0, 2:0}
         self.safe = {1:0, 2:0}
@@ -189,50 +150,44 @@ class PlayerBoard(object):
         
         self.boardHeight = board1.getmaxyx()[0]
         self.boardWidth = board1.getmaxyx()[1]
+
+    def drawCharacter(self, prong, position, character):
+        '''
+        prong: 0 to 23, the prong to display on
+        position: how far up or down the prong to display the character on
+        character: the character to display
+        '''
+        cursesBoard = 1 if (prong > 5 and prong < 18) else 0
+
+        if prong < 12: # bottom
+            self.boards[cursesBoard].addstr(self.boardHeight-(position*2+2), self.boardWidth-((prong%6)*5+3), character)
+        else: # top
+            self.boards[cursesBoard].addstr(position*2+1, (prong%6)*5+2, character)
         
     def drawBoard(self):
         for i in range(24):
             prong = self.board[i]
-            cursesBoard = 1 if (i > 5 and i < 18) else 0
             for x in range(6):
                 if x < prong["number"]:
                     character = self.p1token if prong["tokenType"] == 1 else self.p2token
                 else:
                     character = " "
 
-                if i < 12: # bottom
-                    self.boards[cursesBoard].addstr(self.boardHeight-(x*2+2), self.boardWidth-((i%6)*5+3), character)
-                else: # top
-                    self.boards[cursesBoard].addstr(x*2+1, ((i%6)*5+3), character)
+                self.drawCharacter(i, x, character)
+
+                # if i < 12: # bottom
+                #     self.boards[cursesBoard].addstr(self.boardHeight-(x*2+2), self.boardWidth-((i%6)*5+3), character)
+                # else: # top
+                #     self.boards[cursesBoard].addstr(x*2+1, (i%6)*5+2, character)
 
         for board in self.boards:
             board.refresh()
-
-        # for z in range(2): #players
-        #     for i in range(2): #inner, outer
-        #         for j in range(6): #prongs
-        #             prong = self.board[i+2*z][j]
-        #             for x in range(6): #tokens
-        #                 if x < prong["number"]:
-        #                     character = self.p1token if prong["tokenType"] == 1 else self.p2token
-        #                     # if prong["tokenType"] == 1:
-        #                     #     character = self.p1token if z == 1 else self.p2token
-        #                     # else:
-        #                     #     character = self.p2token if z == 1 else self.p1token
-        #                 else:
-        #                     character = " "
-        #                 if z == 0:
-        #                     self.boards[i].addstr(x*2+1, self.boardWidth-(j*5+3), character)
-        #                 elif z == 1:
-        #                     self.boards[i].addstr(self.boardHeight-(x*2+2), self.boardWidth-(j*5+3), character)
-        #         self.boards[i].refresh()
 
     def prongInfo(self, board, prong):
         """
         {"tokenType":, "number"}
         """
         return self.board[board][prong]
-    
     
     def moveCursor(self, board, prong):
         if board >= 2:
@@ -245,16 +200,13 @@ class PlayerBoard(object):
         print(pos, file=debug)
         if z:
             y, x = self.boardHeight-pos*2-1, self.boardWidth-(prong*5+3)
-            # self.boards[board].addstr(self.boardHeight-pos*2-1, self.boardWidth-(prong*5+3), CURSOR_CHAR)
         else:
             y, x = pos*2, self.boardWidth-(prong*5+3)
-            # self.boards[board].addstr(pos*2, self.boardWidth-(prong*5+3), CURSOR_CHAR)
         self.boards[board].addstr(y, x, CURSOR_CHAR)
         if self.currentCursorPos:
             self.boards[self.currentCursorPos[0]].addstr(self.currentCursorPos[1], self.currentCursorPos[2], " ")
         self.currentCursorPos = (board, y, x)
         for boardyboard in self.boards: boardyboard.refresh()
-        # self.boards[board].refresh()
 
     def tempDisplayProng(self, board, prong, playerNumber, add=1):
         self.tempProngs.append([board, prong, playerNumber, add])
@@ -312,11 +264,7 @@ class Game(object):
         self.bgBoard.drawPlayerBoards()
 
         self.pBoard = PlayerBoard(1, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
-        # self.p2Board = PlayerBoard(2, PLAYERTWO_TOKEN, PLAYERONE_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
-        
-
         self.pBoard.drawBoard()
-        # self.p2Board.drawBoard()
 
         self.dice1.draw()
         self.dice2.draw()
@@ -387,9 +335,6 @@ class Game(object):
         # self.pBoard.moveCursor(currentProng[0], currentProng[1])
 
         while True:
-            # self.p1Board.boards[0].addstr(5,5, CURSOR_CHAR)
-            # self.p1Board.boards[0].refresh()
-
             char = self.screen.getkey()
             self.log.newMsg(char)
             if char == "q":
@@ -461,46 +406,13 @@ class Game(object):
 
                 self.pBoard.removeTempProngs()
                 for moveValue in self.checkMoveValue():
-                # self.log.newMsg(int(moveValue))
                     prong = self.validProngs(currentPlayer, int(moveValue), currentProng)
                     if prong:
                         self.log.newMsg(str(currentProng))
 
                         self.pBoard.tempDisplayProng(*prong, currentPlayer+1)
-                        # self.pBoard.changeBoard(prong[0], prong[1], currentPlayer+1)
-                        # self.pBoard.changeBoard(currentProng[0], currentProng[1], currentPlayer+1, -1)
                         self.pBoard.drawBoard()
                         self.pBoard.moveCursor(currentProng[0], currentProng[1])
-
-                        # currentPlayer = self.currentPlayerIndicator.changePlayer()
-                    
-
-
-
-            
-            # if char == "q":
-            #     break
-            # elif char == "KEY_UP":
-            #     if self.p1Board.prongInfo(0,1)["number"] < 5:
-            #         self.p1Board.changeBoard(0, 1, 1, 1)
-            #         self.p1Board.drawBoard()
-            # elif char == "KEY_DOWN":
-            #     if self.p1Board.prongInfo(0,1)["number"] > 0:
-            #         self.p1Board.changeBoard(0, 1, 1,-1)
-            #         self.p1Board.drawBoard()
-
-            # elif char == "w":
-            #     if self.p1Board.prongInfo(2,1)["number"] < 5:
-            #         self.p1Board.changeBoard(2+0, 1, 2)
-            #         self.p1Board.drawBoard()
-            # elif char == "s":
-            #     if self.p1Board.prongInfo(2,1)["number"] > 0:
-            #         self.p1Board.changeBoard(2+0, 1, 2, -1)
-            #         self.p1Board.drawBoard()
-                
-            # elif char == "p":
-            #     self.currentPlayerIndicator.changePlayer()
-                
 
 def main(screen):
     game = Game(screen)
