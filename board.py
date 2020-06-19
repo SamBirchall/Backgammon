@@ -243,43 +243,23 @@ class Game(object):
             moveValue.append(self.dice2.getNumber())
         return moveValue
     
-    def validProngs(self, currentPlayer, diceroll, startProng): # FIXME:
+    def validProngs(self, player, number, startProng, bearingOff=False):
         """
-        Work out from prong and dice roll work out if there is a valid prong to move to and which prong it is
-        returns: prong [board, prong] if valid prong, otherwise returns False
+        checks whether the prong <number> from <startProng> is valid for <player> to move to
+        returns: -1 if no prong, otherwise the number of the prong
         """
 
-        currentProng = startProng[:]
+        currentProng = startProng
+        currentProng += number
 
-        if currentPlayer == 0:
-            for i in range(diceroll):
-                if currentProng[1] <= 5 :
-                    if currentProng[0] <= 1:
-                        currentProng[1] += 1
-                    else:
-                        currentProng[1] -= 1
-
-                if (currentProng[1] == 6 and currentProng[0] <= 1) or (currentProng[1] == -1 and currentProng[0] > 1):
-                    if currentProng[0] == 0:
-                        currentProng[0] = 1
-                        currentProng[1] = 0
-
-
-                    elif currentProng[0] == 1:
-                        currentProng[0] = 3
-                        currentProng[1] = 5
-                    elif currentProng[0] == 3:
-                        currentProng[0] = 2
-                        currentProng[1] = 5
-                    elif currentProng[0] == 2:
-                        currentProng[0] = 0
-                        currentProng[1] = 0
-
-            if (self.pBoard.prongInfo(*currentProng)["tokenType"] == currentPlayer+1 and self.pBoard.prongInfo(*currentProng)["number"] < 5) or self.pBoard.prongInfo(*currentProng)["number"] == 0:
-                return currentProng[:]
+        if bearingOff:
+            pass
+        else:
+            if currentProng < 24:
+                if (self.pBoard.prongInfo(currentProng)["tokenType"] == player and self.pBoard.prongInfo(currentProng)["number"] < 5) or self.pBoard.prongInfo(currentProng)["number"] == 0:
+                    return currentProng
         
-
-
+        return -1
 
     def checkScreenSize(self):
         height = self.screen.getmaxyx()[0]
