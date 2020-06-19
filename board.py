@@ -93,7 +93,7 @@ class Safe(object):
         
 class PlayerBoard(object):
     def __init__(self, player, p1token, p2token, board1, board2):
-        self.currentCursorPos = False
+        self.currentCursorPos = False # prong, position
         self.board = [ # 1: red, 0: black
             {"tokenType": 1, "number": 2},
             {"tokenType": 0, "number": 0},
@@ -143,7 +143,7 @@ class PlayerBoard(object):
         cursesBoard = 1 if (prong > 5 and prong < 18) else 0
 
         if prong < 12: # bottom
-            self.cursesBoards[cursesBoard].addstr(self.boardHeight-(position*2+2), self.boardWidth-((prong%6)*5+3), character)
+            self.cursesBoards[cursesBoard].addstr(int(self.boardHeight-(position*2+2)), self.boardWidth-((prong%6)*5+3), character)
         else: # top
             self.cursesBoards[cursesBoard].addstr(position*2+1, (prong%6)*5+2, character)
         
@@ -158,33 +158,25 @@ class PlayerBoard(object):
 
                 self.drawCharacter(i, x, character)
 
-        for board in self.cursesBoards:
-            board.refresh()
+        self.refreshCursesBoards()
 
     def prongInfo(self, prong):
         """
         {"tokenType":, "number"}
         """
         return self.board[prong]
-    
-    def moveCursor(self, board, prong): # FIXME:
-        if board >= 2:
-            board %= 2
-            z = 1
-        else:
-            z = 0
 
-        pos = self.prongInfo(board, prong)["number"]
-        print(pos, file=debug)
-        if z:
-            y, x = self.boardHeight-pos*2-1, self.boardWidth-(prong*5+3)
-        else:
-            y, x = pos*2, self.boardWidth-(prong*5+3)
-        self.cursesBoards[board].addstr(y, x, CURSOR_CHAR)
+    def refreshCursesBoards(self):
+        for board in self.cursesBoards:
+            board.refresh()
+    
+    def moveCursor(self, prong):
         if self.currentCursorPos:
-            self.cursesBoards[self.currentCursorPos[0]].addstr(self.currentCursorPos[1], self.currentCursorPos[2], " ")
-        self.currentCursorPos = (board, y, x)
-        for boardyboard in self.cursesBoards: boardyboard.refresh()
+            self.drawCharacter(*self.currentCursorPos, " ")
+        
+        self.currentCursorPos = [prong, self.prongInfo(prong)["number"] - 0.5]
+
+        self.drawCharacter(*self.currentCursorPos, CURSOR_CHAR)
 
     def changeBoard(self, board, prong, playerNumber, add=1): # FIXME:
         """
@@ -299,7 +291,8 @@ class Game(object):
         currentDiceRoll = [self.dice1.roll(), self.dice2.roll()]
         currentPlayer = 1
 
-        # self.pBoard.moveCursor(currentProng[0], currentProng[1])
+        self.pBoard.moveCursor(0)
+        self.pBoard.refreshCursesBoards()
 
         while True:
             char = self.screen.getkey()
