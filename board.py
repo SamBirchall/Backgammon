@@ -8,6 +8,11 @@ from curses import wrapper
 PLAYERONE_TOKEN = "\u2593"
 PLAYERTWO_TOKEN = "\u2591"
 
+EMPTY_TOKEN = "\u2592"
+
+UPSELECTION_TOKEN = "\u253B"
+DOWNSELECTION_TOKEN = "\u2533"
+
 CURSOR_CHAR = "\u2588"
 
 debug = open("debug.txt", "w")
@@ -150,7 +155,8 @@ class PlayerBoard(object):
 
         if position == "end":
             position = self.prongInfo(prong)["number"] - 0.5
-
+        elif position == "top":
+            position = self.prongInfo(prong)["number"]
         if prong < 12: # bottom
             self.cursesBoards[cursesBoard].addstr(int(self.boardHeight-(position*2+2)), self.boardWidth-((prong%6)*5+3), character)
         else: # top
@@ -177,6 +183,7 @@ class PlayerBoard(object):
 
     def refreshCursesBoards(self):
         for board in self.cursesBoards:
+            board.border()
             board.refresh()
     
     def moveCursor(self, prong):
@@ -216,7 +223,7 @@ class PlayerBoard(object):
 
 class Game(object):
     def __init__(self, screen):
-        self.tempChars = []
+        self.availableProngs = []
 
         self.bgBoard = BgBoard()
         self.dice1 = Dice(9, 64)
@@ -259,7 +266,10 @@ class Game(object):
         """
 
         currentProng = startProng
-        currentProng += number # TODO: -= number for one player, += number for the other
+        if player == 0:
+            currentProng -= number
+        elif player == 1:
+            currentProng += number 
 
         if bearingOff: # TODO:
             pass
@@ -283,6 +293,9 @@ class Game(object):
         currentProng = 0
         currentDiceRoll = [self.dice1.roll(), self.dice2.roll()]
         currentPlayer = 0
+        previousCounter = -1
+        counter = 0
+
 
         self.pBoard.moveCursor(currentProng)
         self.pBoard.refreshCursesBoards()
@@ -295,7 +308,7 @@ class Game(object):
             elif char == "p":
                 currentPlayer = self.currentPlayerIndicator.changePlayer()
                 currentDiceRoll = self.dice1.roll() + self.dice2.roll()
-            elif char == "KEY_RIGHT" or "KEY_LEFT":
+            elif char == "KEY_RIGHT" or char == "KEY_LEFT":
                 foundProng = False
                 while not foundProng:
                     if char == "KEY_RIGHT":
@@ -306,21 +319,40 @@ class Game(object):
 
                     if self.pBoard.prongInfo(currentProng)["tokenType"] == currentPlayer and self.pBoard.prongInfo(currentProng)["number"] != 0:
                         foundProng = True
+                    
 
                 self.pBoard.moveCursor(currentProng)
+                if previousCounter > -1:
+                    self.pBoard.drawCharacter(self.availableProngs[previousCounter], 5, " ")
 
-                # TODO: display possible moves from the position using getMoveValues() method
-                if self.tempChars:
-                    for char in self.tempChars:
-                        self.pBoard.drawCharacter(char, "end", " ")
-                    self.tempChars = []
+                # display possible moves from the position using getMoveValues() method
+                if self.availableProngs:
+                    for char in self.availableProngs:
+                        self.pBoard.drawCharacter(char, "top", " ")
+                    self.availableProngs = []
                 for value in self.getMoveValues():
                     endProng = self.validProng(currentPlayer, value, currentProng)
                     if endProng >= 0:
-                        self.pBoard.drawCharacter(endProng, "end", "U")
-                        self.tempChars.append(endProng)
-
+                        self.pBoard.drawCharacter(endProng, "top", EMPTY_TOKEN)
+                        self.availableProngs.append(endProng)
+                previousCounter = -1
+                counter = 0
                 self.pBoard.refreshCursesBoards()
+
+            elif char == "KEY_UP" or char == "KEY_DOWN":
+                if self.availableProngs[counter] < 12:
+                    token = DOWNSELECTION_TOKEN
+                else:
+                    token = UPSELECTION_TOKEN
+                if previousCounter > -1:
+                    self.pBoard.drawCharacter(self.availableProngs[previousCounter], 5, " ")
+
+                self.pBoard.drawCharacter(self.availableProngs[counter], 5, token)
+                previousCounter = counter
+                counter += 1
+                counter %= len(self.availableProngs)
+                self.pBoard.refreshCursesBoards()
+
 
 
 def main(screen):
