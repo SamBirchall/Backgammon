@@ -178,32 +178,31 @@ class PlayerBoard(object):
 
         self.drawCharacter(*self.currentCursorPos, CURSOR_CHAR)
 
-    def changeBoard(self, board, prong, playerNumber, add=1): # FIXME:
+    def changeBoard(self, prong, playerNumber, add=1):
         """
-        board: 0: p1inner, 1: p1outer, 2: p2inner, 3: p2outer
         prong: which prong to add the token to
         add: 1 to add 1, -1 to take away
         playerNumber: which player the token belongs to
         """
-        if self.board[board][prong]["tokenType"] != playerNumber:
+        if self.board[prong]["tokenType"] != playerNumber:
             if add > 0:
-                if self.board[board][prong]["number"] == 0:
-                    self.board[board][prong]["tokenType"] = playerNumber
-                elif self.board[board][prong]["number"] == 1:
+                if self.board[prong]["number"] == 0:
+                    self.board[prong]["tokenType"] = playerNumber
+                elif self.board[prong]["number"] == 1:
                     raise Exception("players do not match")
             else:
                 raise Exception("players do not match")
         if add > 0:
-            if self.board[board][prong]["number"] >= 5:
+            if self.board[prong]["number"] >= 5:
                 raise Exception(f"prong {prong} already full on board {board}")
             else:
-                self.board[board][prong]["number"] += add
+                self.board[prong]["number"] += add
         if add < 0:
-            if self.board[board][prong]["number"] <= 0:
+            if self.board[prong]["number"] <= 0:
                 raise Exception(f"prong {prong} already empty on board {board}")
             else:
-                self.board[board][prong]["number"] += add
-                print(self.board[board][prong]["number"], file=debug)        
+                self.board[prong]["number"] += add
+                print(self.board[prong]["number"], file=debug)        
 
 
 class Game(object):
