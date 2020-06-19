@@ -218,7 +218,12 @@ class PlayerBoard(object):
                 raise Exception(f"prong {prong} already empty on board {board}")
             else:
                 self.board[prong]["number"] += add
-                print(self.board[prong]["number"], file=debug)        
+                     
+    def moveToken(self, initialProng, finalProng, player):
+        self.changeBoard(initialProng, player, -1)
+        self.changeBoard(finalProng, player)
+        self.drawBoard()
+        self.refreshCursesBoards()
 
 
 class Game(object):
@@ -253,10 +258,10 @@ class Game(object):
         if self.dice1.getNumber() == self.dice2.getNumber():
             for i in range(4):
                 moveValues.append(self.dice2.getNumber())
+            
         else:
             moveValues.append(self.dice1.getNumber())
             moveValues.append(self.dice2.getNumber())
-
         return moveValues
  
     def validProng(self, player, number, startProng, bearingOff=False):
@@ -291,7 +296,6 @@ class Game(object):
     def mainLoop(self):
         curses.curs_set(False)
         currentProng = 0
-        currentDiceRoll = [self.dice1.roll(), self.dice2.roll()]
         currentPlayer = 0
         previousCounter = -1
         counter = 0
@@ -300,6 +304,8 @@ class Game(object):
         self.pBoard.moveCursor(currentProng)
         self.pBoard.refreshCursesBoards()
 
+        self.currentMoveValues = self.getMoveValues()
+
         while True:
             char = self.screen.getkey()
             self.log.newMsg(char)
@@ -307,7 +313,10 @@ class Game(object):
                 break
             elif char == "p":
                 currentPlayer = self.currentPlayerIndicator.changePlayer()
-                currentDiceRoll = self.dice1.roll() + self.dice2.roll()
+                self.dice1.roll() 
+                self.dice2.roll()
+                self.currentMoveValues = self.getMoveValues()
+
             elif char == "KEY_RIGHT" or char == "KEY_LEFT":
                 foundProng = False
                 while not foundProng:
@@ -330,7 +339,7 @@ class Game(object):
                     for char in self.availableProngs:
                         self.pBoard.drawCharacter(char, "top", " ")
                     self.availableProngs = []
-                for value in self.getMoveValues():
+                for value in self.currentMoveValues:
                     endProng = self.validProng(currentPlayer, value, currentProng)
                     if endProng >= 0:
                         self.pBoard.drawCharacter(endProng, "top", EMPTY_TOKEN)
@@ -340,18 +349,24 @@ class Game(object):
                 self.pBoard.refreshCursesBoards()
 
             elif char == "KEY_UP" or char == "KEY_DOWN":
-                if self.availableProngs[counter] < 12:
-                    token = DOWNSELECTION_TOKEN
-                else:
-                    token = UPSELECTION_TOKEN
-                if previousCounter > -1:
-                    self.pBoard.drawCharacter(self.availableProngs[previousCounter], 5, " ")
+                if self.availableProngs:
+                    if self.availableProngs[counter] < 12:
+                        token = DOWNSELECTION_TOKEN
+                    else:
+                        token = UPSELECTION_TOKEN
+                    if previousCounter > -1:
+                        self.pBoard.drawCharacter(self.availableProngs[previousCounter], 5, " ")
 
-                self.pBoard.drawCharacter(self.availableProngs[counter], 5, token)
-                previousCounter = counter
-                counter += 1
-                counter %= len(self.availableProngs)
-                self.pBoard.refreshCursesBoards()
+                    self.pBoard.drawCharacter(self.availableProngs[counter], 5, token)
+                    previousCounter = counter
+                    counter += 1
+                    counter %= len(self.availableProngs)
+                    self.pBoard.refreshCursesBoards()
+
+            elif char == "\n":
+                self.pBoard.moveToken(currentProng, self.availableProngs[previousCounter], currentPlayer)
+                self.availableProngs.pop(previousCounter)
+                self.currentMoveValues.pop(previousCounter)
 
 
 
