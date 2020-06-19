@@ -93,8 +93,6 @@ class Safe(object):
         
 class PlayerBoard(object):
     def __init__(self, player, p1token, p2token, board1, board2):
-
-        self.tempProngs = []
         self.currentCursorPos = False
         self.board = [ # 1: red, 0: black
             {"tokenType": 1, "number": 2},
@@ -163,13 +161,13 @@ class PlayerBoard(object):
         for board in self.cursesBoards:
             board.refresh()
 
-    def prongInfo(self, board, prong):
+    def prongInfo(self, board, prong): # FIXME:
         """
         {"tokenType":, "number"}
         """
         return self.board[board][prong]
     
-    def moveCursor(self, board, prong):
+    def moveCursor(self, board, prong): # FIXME:
         if board >= 2:
             board %= 2
             z = 1
@@ -188,18 +186,7 @@ class PlayerBoard(object):
         self.currentCursorPos = (board, y, x)
         for boardyboard in self.cursesBoards: boardyboard.refresh()
 
-    def tempDisplayProng(self, board, prong, playerNumber, add=1):
-        self.tempProngs.append([board, prong, playerNumber, add])
-        self.changeBoard(board, prong, playerNumber, add)
-
-    
-    def removeTempProngs(self):
-        for prong in self.tempProngs:
-            self.changeBoard(*prong[:-1], -prong[-1])
-        
-        self.tempProngs = []
-
-    def changeBoard(self, board, prong, playerNumber, add=1):
+    def changeBoard(self, board, prong, playerNumber, add=1): # FIXME:
         """
         board: 0: p1inner, 1: p1outer, 2: p2inner, 3: p2outer
         prong: which prong to add the token to
@@ -251,7 +238,7 @@ class Game(object):
         self.currentPlayerIndicator.changePlayer()
         self.moveValue = []
 
-    def checkMoveValue(self):
+    def checkMoveValue(self): # FIXME: for some reason this returns a list of strings. also, return new list not a variable of the class
         if self.dice1.number == self.dice2.number:
             for i in range(4):
                 self.moveValue.append(self.dice2.number)
@@ -260,7 +247,7 @@ class Game(object):
             self.moveValue.append(self.dice2.number)
         return self.moveValue
     
-    def validProngs(self, currentPlayer, diceroll, startProng):
+    def validProngs(self, currentPlayer, diceroll, startProng): # FIXME:
         """
         Work out from prong and dice roll work out if there is a valid prong to move to and which prong it is
         returns: prong [board, prong] if valid prong, otherwise returns False
@@ -322,7 +309,7 @@ class Game(object):
             elif char == "p":
                 currentPlayer = self.currentPlayerIndicator.changePlayer()
                 currentDiceRoll = self.dice1.roll() + self.dice2.roll()
-            elif char == "KEY_RIGHT" or "KEY_LEFT":
+            elif char == "KEY_RIGHT" or "KEY_LEFT": # FIXME:
                 if char == "KEY_RIGHT":
                     foundProng = False
                     while not foundProng:
@@ -384,7 +371,6 @@ class Game(object):
                 
                     self.pBoard.moveCursor(currentProng[0], currentProng[1])
 
-                self.pBoard.removeTempProngs()
                 for moveValue in self.checkMoveValue():
                     prong = self.validProngs(currentPlayer, int(moveValue), currentProng)
                     if prong:
