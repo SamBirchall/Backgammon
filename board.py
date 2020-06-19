@@ -40,10 +40,13 @@ class PlayerIndicator(object):
         self.currentplayer = 0
         self.window = curses.newwin(3,3, self.y, self.x)
 
-    def changePlayer(self):
+    def changePlayer(self, player=None):
         self.window.border()
-        self.currentplayer += 1
-        self.currentplayer %= 2
+        if type(player) == int:
+            self.currentplayer = player
+        else:
+            self.currentplayer += 1
+            self.currentplayer %= 2
         self.window.addstr(1,1, self.tokens[self.currentplayer])
         self.window.refresh()
         return self.currentplayer
@@ -97,7 +100,7 @@ class Safe(object):
 class PlayerBoard(object):
     def __init__(self, player, p1token, p2token, board1, board2):
         self.currentCursorPos = False # prong, position
-        self.board = [ # 1: red, 0: black
+        self.board = [ # 1: red/clockwise, 0: black/anticlockwise
             {"tokenType": 1, "number": 2},
             {"tokenType": 0, "number": 0},
             {"tokenType": 0, "number": 0},
@@ -213,6 +216,8 @@ class PlayerBoard(object):
 
 class Game(object):
     def __init__(self, screen):
+        self.tempChars = []
+
         self.bgBoard = BgBoard()
         self.dice1 = Dice(9, 64)
         self.dice2 = Dice(14, 64)
@@ -232,30 +237,34 @@ class Game(object):
 
         self.dice1.draw()
         self.dice2.draw()
-        self.currentPlayerIndicator.changePlayer()
+        self.currentPlayerIndicator.changePlayer(0)
+        
 
-    def checkMoveValue(self):
+
+    def getMoveValues(self):
+        moveValues = []
         if self.dice1.getNumber() == self.dice2.getNumber():
             for i in range(4):
-                moveValue.append(self.dice2.getNumber())
+                moveValues.append(self.dice2.getNumber())
         else:
-            moveValue.append(self.dice1.getNumber())
-            moveValue.append(self.dice2.getNumber())
-        return moveValue
-    
-    def validProngs(self, player, number, startProng, bearingOff=False):
+            moveValues.append(self.dice1.getNumber())
+            moveValues.append(self.dice2.getNumber())
+
+        return moveValues
+ 
+    def validProng(self, player, number, startProng, bearingOff=False):
         """
         checks whether the prong <number> from <startProng> is valid for <player> to move to
         returns: -1 if no prong, otherwise the number of the prong
         """
 
         currentProng = startProng
-        currentProng += number
+        currentProng += number # TODO: -= number for one player, += number for the other
 
-        if bearingOff:
+        if bearingOff: # TODO:
             pass
         else:
-            if currentProng < 24:
+            if currentProng < 24 and currentProng > -1:
                 if (self.pBoard.prongInfo(currentProng)["tokenType"] == player and self.pBoard.prongInfo(currentProng)["number"] < 5) or self.pBoard.prongInfo(currentProng)["number"] == 0:
                     return currentProng
         
@@ -299,9 +308,20 @@ class Game(object):
                         foundProng = True
 
                 self.pBoard.moveCursor(currentProng)
+
+                # TODO: display possible moves from the position using getMoveValues() method
+                if self.tempChars:
+                    for char in self.tempChars:
+                        self.pBoard.drawCharacter(char, "end", " ")
+                    self.tempChars = []
+                for value in self.getMoveValues():
+                    endProng = self.validProng(currentPlayer, value, currentProng)
+                    if endProng >= 0:
+                        self.pBoard.drawCharacter(endProng, "end", "U")
+                        self.tempChars.append(endProng)
+
                 self.pBoard.refreshCursesBoards()
 
-                # TODO: display possible moves from the position using checkMoveValue() method
 
 def main(screen):
     game = Game(screen)
