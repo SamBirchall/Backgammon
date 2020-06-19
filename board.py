@@ -161,11 +161,11 @@ class PlayerBoard(object):
         for board in self.cursesBoards:
             board.refresh()
 
-    def prongInfo(self, board, prong): # FIXME:
+    def prongInfo(self, prong):
         """
         {"tokenType":, "number"}
         """
-        return self.board[board][prong]
+        return self.board[prong]
     
     def moveCursor(self, board, prong): # FIXME:
         if board >= 2:
