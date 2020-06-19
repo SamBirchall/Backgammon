@@ -312,7 +312,7 @@ class Game(object):
         while True:
             #TODO:
             # has player won?
-            
+
             char = self.screen.getkey()
             self.log.newMsg(char)
             if char == "q":
@@ -370,11 +370,13 @@ class Game(object):
                     self.pBoard.refreshCursesBoards()
 
             elif char == "\n":
-                self.pBoard.moveToken(currentProng, self.availableProngs[previousCounter], currentPlayer)
-                self.availableProngs.pop(previousCounter)
-                self.currentMoveValues.pop(previousCounter)
-                if not self.availableProngs:
-                    previousCounter = -1
+                if self.availableProngs:
+                    # FIXME: don't allow to remove more tokens than there are on a prong
+                    self.pBoard.moveToken(currentProng, self.availableProngs[previousCounter], currentPlayer)
+                    self.availableProngs.pop(previousCounter)
+                    self.currentMoveValues.pop(previousCounter)
+                    if not self.availableProngs:
+                        previousCounter = -1
 
 
 
