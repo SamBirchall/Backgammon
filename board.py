@@ -95,13 +95,41 @@ class BgBoard(object):
       
         return self.innerBoard, self.outerBoard
 
-class Jail(object): 
-    #TODO:
-    pass
+class CounterContainer(object): 
+    
+    def __init__(self, name, y, x):
+        self.counterContainerWindow = curses.newwin(6, 6, y, x)
+        self.p1Counters = 0
+        self.p2Counters = 0
+        self.name = name
 
-class Safe(object):
-    #TODO:
-    pass
+    def draw(self):
+
+        self.counterContainerWindow.border()
+        self.counterContainerWindow.addstr(1, 1, self.name)
+        self.counterContainerWindow.addstr(2, 1, f"{PLAYERONE_TOKEN}:{self.p1Counters}")
+        self.counterContainerWindow.addstr(4, 1, f"{PLAYERTWO_TOKEN}:{self.p2Counters}")
+        self.counterContainerWindow.refresh()
+
+    def addCounter(self, player, add = 1):
+        if player == 0:
+            self.p1Counters += add
+        else:
+            self.p2counters += add
+
+class Jail(CounterContainer):
+
+    def __init__(self):
+        super().__init__("JAIL", 5, 70)
+        
+    def removeCounter(self, player, remove = -1):
+        self.addCounter(player, remove)
+    
+
+
+class Safe(CounterContainer):
+    def __init__(self):
+        super().__init__("SAFE", 13, 70)
     
         
 class PlayerBoard(object):
@@ -235,7 +263,9 @@ class Game(object):
         self.bgBoard = BgBoard()
         self.dice1 = Dice(9, 64)
         self.dice2 = Dice(14, 64)
-
+        self.jail = Jail()
+        self.safe = Safe()
+       
         self.currentPlayerIndicator = PlayerIndicator(3, 64, PLAYERONE_TOKEN, PLAYERTWO_TOKEN)
         
         self.log = Log(3, 75)
@@ -248,9 +278,11 @@ class Game(object):
 
         self.pBoard = PlayerBoard(1, PLAYERONE_TOKEN, PLAYERTWO_TOKEN, self.bgBoard.innerBoard, self.bgBoard.outerBoard)
         self.pBoard.drawBoard()
-
+        
         self.dice1.draw()
         self.dice2.draw()
+        self.jail.draw()
+        self.safe.draw()
         self.currentPlayerIndicator.changePlayer(0)
         
 
@@ -278,7 +310,7 @@ class Game(object):
         elif player == 1:
             currentProng += number 
 
-        if bearingOff: # TODO:
+        if bearingOff: #TODO:
             pass
         else:
             if currentProng < 24 and currentProng > -1:
@@ -310,8 +342,8 @@ class Game(object):
         self.currentMoveValues = self.getMoveValues()
 
         while True:
-            #TODO:
-            # has player won?
+            if self.safe.p1Counters == 15 or self.safe.p1Counters == 15:
+                break
 
             char = self.screen.getkey()
             self.log.newMsg(char)
@@ -378,7 +410,12 @@ class Game(object):
                     if not self.availableProngs:
                         previousCounter = -1
 
-
+        if self.safe.p1Counters == 15:
+            self.screen.clear()
+            self.screen.addstr(self.board.boardHeight//2, self.boardWidth//2-5, "PLAYER ONE wins!")
+        else:
+            self.screen.clear()
+            self.screen.addstr(self.board.boardHeight//2, self.boardWidth//2-5, "PLAYER TWO wins!")
 
 
 def main(screen):
